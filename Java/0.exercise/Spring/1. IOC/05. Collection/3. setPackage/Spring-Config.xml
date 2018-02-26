@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+   <!-- 注册Book对象 -->
+   <!-- 第一本书 -->
+   <bean id="book1" class="setPackage.Book" >
+     <property name="bookName" value="OOAD" />
+     <property name="author" value="张三" />
+     <property name="publisher" value="人民出版社" />
+   </bean>
+   
+      <!-- 第二本书 -->
+   <bean id="book2" class="setPackage.Book" >
+     <property name="bookName" value="HTML" />
+     <property name="author" value="李四" />
+     <property name="publisher" value="广东出版社" />
+   </bean>
+   
+      <!-- 第三本书 -->
+   <bean id="book3" class="setPackage.Book" >
+     <property name="bookName" value="JavaScript" />
+     <property name="author" value="王五" />
+     <property name="publisher" value="商务出版社" />
+   </bean>
+   
+   <bean id="setBean" class="setPackage.SetBean">
+      <property name="books">
+          <set>
+             <ref bean="book1" />
+             <ref bean="book2" />
+             <ref bean="book3" />
+          </set>
+      </property>
+   </bean>
+  
+</beans>

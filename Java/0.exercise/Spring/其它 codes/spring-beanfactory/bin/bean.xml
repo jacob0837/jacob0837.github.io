@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "http://www.springframework.org/dtd/spring-beans-2.0.dtd" >
+<beans>
+	<bean id="account" class="model.Account">
+		<!-- <property name="id">
+			<value>10002</value>
+		</property>
+		<property name="name">
+			<value>Eric</value>
+		</property>
+		 -->
+		 <!-- 通过构造方式来注入属性值 -->
+		<constructor-arg index="0">
+			<value>10002</value>
+		</constructor-arg>
+		<constructor-arg index="1">
+			<value>Eric</value>
+		</constructor-arg>
+		<property name="subAccount">
+			<map>
+				<entry key="账户A">
+					<value>人民币账户</value>
+				</entry>
+				<entry key="账户B">
+					<value>美元账户</value>
+				</entry>
+				<entry key="账户C">
+					<value>欧账户</value>
+				</entry>
+			</map>
+		</property>
+		<property name="log">
+			<props>
+				<prop key="2008-06-01">+1000</prop>
+				<prop key="2008--07-19">-700</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<bean id="view" class="view.CommandLineView">
+		<property name="account">
+			<ref bean="account"/>
+		</property>
+	</bean>
+</beans>

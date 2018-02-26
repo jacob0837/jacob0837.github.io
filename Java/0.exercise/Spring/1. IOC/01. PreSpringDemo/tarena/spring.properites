@@ -1,0 +1,7 @@
+business.class = tarena.Business
+
+usb.class      = tarena.UsbDevice
+
+soft.class     = tarena.SoftDevice
+
+

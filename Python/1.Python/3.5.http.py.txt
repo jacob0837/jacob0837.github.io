@@ -1,0 +1,39 @@
+﻿
+
+url编码操作
+    import urllib,sys
+
+    s = '杭州'
+    print(urllib.quote(s)) # url 转码,打印如: %E6%9D%AD%E5%B7%9E
+    print(urllib.unquote('%E6%9D%AD%E5%B7%9E')) # url 解码,打印如: 杭州
+
+    # 按所用的编码来转码
+    print(urllib.quote(s.decode(sys.stdin.encoding).encode('utf8'))) # 打印如: %E6%9D%AD%E5%B7%9E
+    print(urllib.quote(s.decode(sys.stdin.encoding).encode('gbk')))  # 打印如: %BA%BC%D6%DD
+    print(urllib.quote(s.decode('gbk').encode('utf8'))) # 指定编码来转码
+    print(urllib.quote(u'中国'.encode('utf8'))) # unicode编码的，需encode一下；否则中文会出错
+    # decode就是把其他编码转换为unicode，等同于unicode函数；encode就是把unicode编码的字符串转换为特定编码。
+
+    # 一些不希望被编码的url
+    print urllib.quote("http://localhost/index.html?id=1") # 打印: http%3A//localhost/index.html%3Fid%3D1
+    print urllib.quote("http://localhost/index.html?id=1",":?=/") # 打印: http://localhost/index.html?id=1
+
+    # 查看
+    print(u'中国'.__class__) # 打印: <type 'unicode'>
+    print('中国'.__class__)  # 打印: <type 'str'>
+
+
+利用 Python 搭建一个简单的 Web 服务器,快速实现局域网内文件共享。
+    1. cd 到准备做服务器根目录的路径下(这目录下的文件将会被共享)
+    2. 运行命令：
+       python -m Web服务器模块[端口号，默认8000]
+       这里的“Web服务器模块”有如下三种：
+            BaseHTTPServer: 提供基本的Web服务和处理器类，分别是HTTPServer和BaseHTTPRequestHandler。
+            SimpleHTTPServer: 包含执行GET和HEAD请求的SimpleHTTPRequestHandler类。
+            CGIHTTPServer: 包含处理POST请求和执行CGIHTTPRequestHandler类。
+
+       运行如: python -m SimpleHTTPServer 8080
+
+    3. 可以在浏览器中访问:
+       http://$HOSTNAME:端口号/路径
+

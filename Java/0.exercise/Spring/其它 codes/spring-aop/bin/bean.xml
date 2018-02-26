@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" "http://www.springframework.org/dtd/spring-beans-2.0.dtd" >
+<beans>
+	<!-- 目标对象 -->
+	<bean id="foo" class="advice.Foo"/>
+	<bean id="foo2" class="advice.Foo"/>
+	
+	<bean id="aroundInterptor" class="advice.AroundInterptorFoo"></bean>
+	<bean id="beforeInterptor" class="advice.MethodBeforeAdviceFoo"></bean>
+	
+	<!-- 构造一个pointcut -->
+	<bean id="myPointcut" class="advice.MyPointcut"></bean>
+	
+	<!-- 构造一个Advisor=advice+pointcut -->
+	<bean id="advisor" class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor">
+		<property name="advice">
+			<ref bean="aroundInterptor"/>
+		</property>
+		<!-- <property name="pointcut">
+			<ref bean="myPointcut"/>
+		</property>
+		 -->
+		 <property name="mappedNames">
+		 	<list>
+		 		<value>doA</value>
+		 		<value>doB</value>
+		 	</list>
+		 </property>
+	</bean>
+	
+	
+	<!--<bean id="fooProxy" class="org.springframework.aop.framework.ProxyFactoryBean">
+		<property name="target">
+			<ref bean="foo"/>
+		</property>
+		<property name="proxyInterfaces">
+			<list>
+				<value>advice.IFoo</value>
+			</list>
+		</property>
+		代理的业务规则
+		<property name="interceptorNames">
+			<list>
+			<value>beforeInterptor</value>
+			<value>aroundInterptor</value>
+			 
+			 <value>advisor</value>
+			</list>
+		</property>
+	</bean>-->
+	<bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+		<property name="beanNames">
+			<list>
+				<value>foo</value>
+				<value>foo2</value>
+			</list>
+		</property>
+		<property name="interceptorNames">
+			<list>
+				<value>advisor</value>
+			</list>
+		</property>
+	</bean>
+	 
+</beans>

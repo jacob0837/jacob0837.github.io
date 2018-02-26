@@ -1,0 +1,43 @@
+﻿
+easy_install
+    这是个很常用的python安装工具
+    可以直接安装ez_setup.py脚本(下载网址： http://peak.telecommunity.com/dist/ez_setup.py):
+        python ez_setup.py
+
+
+windows 下的使用：
+    安装：
+        下载: http://peak.telecommunity.com/dist/ez_setup.py
+        执行: python ez_setup.py
+    使用：
+        easy_install.exe -U %modal%  # %modal% 是模块名
+
+
+linux 下：
+    安装：
+        sudo apt-get install python-setuptools
+    或者：
+        wget -q http://peak.telecommunity.com/dist/ez_setup.py
+        sudo python ez_setup.py
+    使用：
+        sudo easy_install 模块名
+
+        安装完后，最好确保easy_install所在目录已经被加到PATH环境变量里:
+        Windows: C:\Python25\Scripts
+        Linux: /usr/local/bin
+
+
+不能使用easy_install的特殊情况：
+    a、安装默认版本的MySQL-python会报错，需要指定版本如下：easy_install "MySQL-python==1.2.2"
+    b、有些包直接easy_install会失败，需要自行下载安装：
+           wxpython，pil要下载exe安装程序
+           robotide因为在pypi上找不到，要下载后再easy_install
+
+    通过easy_install安装软件，相关安装信息会保存到easy-install.pth文件里，路径类似如下形式：
+    Windows：C:\Python25\Lib\site-packages\easy-install.pth
+    Linux：/usr/local/lib/python25/site-packages/easy-install.pth
+
+    如果想删除通过easy_install安装的软件包，比如说：MySQL-python，可以执行命令：
+        easy_install -m MySQL-python
+
+    此操作会从easy-install.pth文件里把MySQL-python的相关信息抹去，剩下的egg文件，你可以手动删除。

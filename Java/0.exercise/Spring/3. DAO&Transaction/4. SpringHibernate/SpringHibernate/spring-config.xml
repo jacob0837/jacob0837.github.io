@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+	http://www.springframework.org/schema/tx
+  http://www.springframework.org/schema/tx/spring-tx-2.0.xsd">
+
+     <!-- 修改XML头信息 -->
+     <!-- 带连接池功能的 org.apache.commons.dbcp.BasicDataSource -->
+     <!-- 数据源 -->
+ <bean id="DriverManagerDataSource"
+       class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+   <property name="driverClassName"><value>com.mysql.jdbc.Driver</value></property>
+   <property name="url"><value>jdbc:mysql://localhost:3306/test</value></property>
+   <property name="username"><value>root</value></property>
+   <property name="password"><value></value></property>
+ </bean>
+ 
+ <!-- SessionFactory -->
+ <bean id="LocalSessionFactoryBean"
+       class="org.springframework.orm.hibernate3.LocalSessionFactoryBean ">
+    <property name="dataSource"><ref bean="DriverManagerDataSource"/></property>
+    <property name="mappingResources">
+         <list><value>SpringHibernate/Staff.hbm.xml</value></list></property>
+ </bean>
+ 
+ 
+     <!-- 持久层 -->
+ <bean id="UserDaoImpl" class="SpringHibernate.UserDaoImpl">
+     <property name="sessionFactory"><ref bean="LocalSessionFactoryBean"/></property>
+ </bean>
+
+  <!-- Hibernate事务管理器 -->
+  <bean id="HibernateTransactionManager"
+        class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+     <property name="sessionFactory">
+          <ref bean="LocalSessionFactoryBean"/>
+     </property>
+  </bean>
+ 
+   <!-- Spring2声明事务管理 -->
+  <tx:annotation-driven transaction-manager="HibernateTransactionManager" />
+
+</beans>
+

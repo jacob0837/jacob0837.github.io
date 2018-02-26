@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+  <!-- 固定写法 -->
+  <bean id="configBean" 
+     class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+               <!-- 相对src目录的文件名 -->
+     <property name="location" value="PropertyPlaceholderConfigurer/mysql.properties"/> 
+   </bean>
+
+  <bean id="dbBean" class="PropertyPlaceholderConfigurer.DBBean">
+                <!-- 属性文件中的key值，类似于EL表达式 -->
+      <property name="driver" value="${driver.key}" />
+      <property name="url" ><value>${url.key}</value></property>
+      <property name="user"><value>${user.key}</value></property>
+      <property name="password" value="${password.key}" />
+  </bean>
+
+</beans>

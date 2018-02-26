@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+    <!-- 向IOC容器中注册HelloBean -->
+    <!-- beans标签内可有很多个bean子标签 -->
+  <bean id="hb" class="tarena.HelloBean">
+     <property name="hello"><!-- 属性 -->
+       <value>大家好</value><!-- 会传给  HelloBean 类的构造方法-->
+     </property>
+  </bean>
+  
+  <!-- 这样写也可以
+  <bean id="hb" class="tarena.HelloBean">
+     <property name="hello" value="大家好" />
+  </bean>
+   -->
+
+</beans>

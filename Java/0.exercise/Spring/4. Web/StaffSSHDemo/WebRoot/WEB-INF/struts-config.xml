@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+
+<struts-config>
+	<data-sources />
+	<form-beans>
+		<form-bean name="staffForm" type="tarena.web.StaffForm" />
+	</form-beans>
+
+	<global-exceptions />
+	<global-forwards />
+	<action-mappings>
+		<action
+      attribute="staffForm"
+      name="staffForm"
+      parameter="method"
+      path="/staff"
+      scope="request"
+      type="org.springframework.web.struts.DelegatingActionProxy"
+      validate="false">
+      <forward
+        name="toSuccess"
+        path="/success.jsp"
+        redirect="true" />
+      <forward
+        name="toStaff"
+        path="/staff.jsp"
+        redirect="true" />
+    </action>
+
+	</action-mappings>
+
+	<message-resources parameter="tarena.web.ar" />
+
+
+	<!--  通过spring提供的类加载spring-config.xml -->
+	<plug-in
+		className="org.springframework.web.struts.ContextLoaderPlugIn">
+		<set-property property="contextConfigLocation"
+			value="/WEB-INF/classes/tarena/web/spring-config.xml" />
+	</plug-in>
+
+
+</struts-config>
+
+
+
+
+
+
+
+

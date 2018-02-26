@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+  <!-- 只需配置监听者 -->
+  <bean id="tom" class="publishEvent.CustomListener" >
+   <property name="name" value="tom"/>
+   <property name="time"><ref bean="DateTime"/></property>
+  </bean>
+
+  <bean id="DateTime" class="java.util.Date"/>
+  
+</beans>

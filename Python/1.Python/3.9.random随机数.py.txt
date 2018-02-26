@@ -1,0 +1,7 @@
+﻿
+
+11. 随机数
+    from random import randint # 产生随机整数
+    for i in xrange(100):
+        print( randint(10, 90) ) # 产生 10~90 的随机整数
+

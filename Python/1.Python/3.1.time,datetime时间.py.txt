@@ -1,0 +1,54 @@
+﻿
+################## 获取系统时间 #####################
+    import time,datetime
+    time.sleep(2)  # 时间暂停两秒
+    print(time.strftime('%Y-%m-%d %H:%M:%S')) # 打印如: 2011-04-13 18:30:10
+    print(time.strftime('%Y-%m-%d %A %X', time.localtime(time.time()))) # 显示当前日期； 打印如: 2011-04-13 Wednesday 18:30:10
+    print(time.strftime("%Y-%m-%d %A %X", time.localtime())) # 显示当前日期； 打印如: 2011-04-13 Wednesday 18:30:10
+    print(time.time()) # 以浮点数形式返回自Linux新世纪以来经过的秒数； 打印如: 1302687844.7
+    print(time.ctime(1150269086.6630149)) #time.ctime([sec]) 把秒数转换成日期格式，如果不带参数，则显示当前的时间。打印如: Wed Apr 13 21:13:11 2011
+
+    # 得到今天的日期
+    print(datetime.date.today()) # 打印如: 2011-04-13
+    # 得到前一天的日期
+    print(datetime.date.today() + datetime.timedelta(days=-1)) # 打印如: 2011-04-12
+    print(datetime.date.today() - datetime.timedelta(days=1))  # 打印如: 2011-04-14
+    # 得到10天后的时间
+    print(datetime.date.today() + datetime.timedelta(days=10)) # 打印如: 2011-04-23
+    # 得到10小时后的时间，上面的 days 换成 hours
+    print(datetime.datetime.now() + datetime.timedelta(hours=10)) # 打印如: 2011-04-14 04:30:10.189000
+
+    #两日期相减(也可以大于、小于来比较):
+    d1 = datetime.datetime(2005, 2, 16)
+    d2 = datetime.datetime(2004, 12, 31)
+    print((d1 - d2).days) # 打印： 47
+
+    #运行时间：
+    starttime = datetime.datetime.now()
+    time.sleep(1) # 暂停1秒
+    endtime = datetime.datetime.now()
+    print((endtime - starttime).seconds) # 秒, 打印： 1
+    print((endtime - starttime).microseconds) # 微秒； 打印： 14000
+
+
+    日期格式化符号:
+    %%: %号本身
+    %A: 本地星期(全称),如:Tuesday   %a: 本地星期(简称),如:Tue
+    %B: 本地月份(全称),如:February  %b: 本地月份(简称),如:Feb
+                                    %c: 本地相应的日期表示和时间表示,如:02/15/11 16:50:57
+                                    %d: 月内中的一天(0-31),如:15
+    %H: 24进制小时数(0-23)
+    %I: 12进制小时数(01-12)
+                                    %j: 年内的一天(001-366),如:046
+    %M: 分钟(00-59),如:50           %m: 月份(01-12),如:02
+                                    %p: 上下午(本地A.M.或P.M.的等价符),如:PM
+    %S: 秒钟(00-59),如:57
+    %X: 本地的时间,如:16:50:57      %x: 本地的日期,如:02/15/11
+    %Y: 四位的年(000-9999)          %y: 两位数的年份表示(00-99)
+
+    %U: 年里的星期数(00-53)从星期天开始,如:07
+    %W: 年里的星期数(00-53)从星期一开始,如:07
+    %w: 星期(0-6),星期天为星期的开始,如:2 (星期天为0)
+    %Z: 当前时区的名称,如:中国标准时间
+    %z: 当前时区的名称,如:中国标准时间
+

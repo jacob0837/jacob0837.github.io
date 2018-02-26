@@ -1,0 +1,190 @@
+﻿
+
+       1. Spring2 - IoC 篇
+
+实验一：模拟SpringIoC功能
+      手工写一个模拟Spring的IOC
+
+
+  加入Spring2Core包：在MyEclipse里对本工程右键-MyEclipse-Add Spring Capabilities...
+         version选2.0 - 再选中"Spring2.0 Core" - Finish
+      applicationContext.xml 是Spring的配置文件，但赵老师喜欢把它改名为：spring-config.xml 并放在练习的包里
+
+实验二：真正的 Spring IoC 功能(BeanFactory & ApplicationContext) 
+      Spring调用set方法给Bean设置值
+      BeanFactory & ApplicationContext 用法与比较
+
+实验三：通过 SpringIoC 功能重构实验一
+       看Spring做了什么工作
+
+实验四：IoC 的实现 ConstructorDI 和 SetDI
+       通过构造方法实例化和注入值
+
+实验五：集合类型的注入
+       Array, List, Set, Map
+       Properties类
+
+实验六：Bean的单例和原形
+       <!-- 默认是单例模式 scope="singleton"：所有的调用都用相同的一个实例；
+            加上scope="prototype"变原型模式：所有的调用都创建新的实例，各不相同 -->
+
+实验七：Bean的自动装配关系
+       <!-- NO，不写；手工注入 -->
+       <!-- autowire="byName"(方法名)，是根据id和set***()来自动注入的 -->
+       <!-- autowire="byType"(类名)，根据参数的类型(如果有多个同类型参数则无能为力)  -->
+       <!-- autowire="byConstructor"，由满参构造方法注入值   -->
+       <!-- autowire="byAutodetect"，先按constructor注入，如不行，再按byType注入 -->  
+
+实验八：Bean的生命周期
+      实例化-注入值-初始化init-销毁destroy
+       <bean id="xxxBean" class="包名.XxxBean" 
+        init-method="initBean" destroy-method="destroyBean"> 
+      如果要延时实例化Bean，可以在<bean>标记中使用 lazy-init="true"(默认false) 
+      JavaBean中定义 public void initBean(){} 和 public void destroyBean(){}
+      调用时：AbstractApplicationContext context = 
+        new ClassPathXmlApplicationContext("BeanLife/Spring-Config.xml");
+        //用 AbstractApplicationContext；而不是用 ApplicationContext
+        最后向JVM注册销毁Bean实例：   context.registerShutdownHook();
+
+实验九：Bean与容器的关系
+       查看Bean的xml信息
+       实现 org.springframework.beans.factory.BeanFactoryAware接口 
+            方法：setBeanFactory(BeanFactory bf) 
+       或 org.springframework.context.ApplicationContextAware接口 的JavaBean
+            方法：setApplicationContext(ApplicationContext app) 
+
+实验十：注入方法创建Bean实例
+       Spring容器会通过反射，自动实现抽象类，以供调用(IOC作为某个抽象类的实现) 
+
+实验十一：Spring国际化
+        <!-- 固定写法 -->
+        <bean id="messageSource" 
+           class="org.springframework.context.support.ResourceBundleMessageSource">
+              <property name="basename" value="I18N包名/messages"/>
+        </bean>
+
+实验十二：Spring事件发布
+        三要素：事件源、监听器、发布者
+        事件源 要继承 org.springframework.context.ApplicationEvent;
+        监听者 要实现 org.springframework.context.ApplicationListener;
+
+实验十三：分离XML中内容到属性文件
+        连接数据库的配置文件从 xml 中分离出去，放到 properties 文件中(当xml很大的时候就有用，容易修改) 
+
+实验14： 
+
+
+
+
+
+
+
+
+        2. Spring2 - AoP 篇
+
+实验一， 传统日志处理                 LoggerDemo
+        以前写日志的方式
+
+实验二， 静态代理                    StaticLoggerProxyDemo
+        自己写代理调用写日志的程序
+
+实验三， 动态代理                    DynamicLoggerProxyDemo
+        动态代理器必须实现 java.lang.reflect.InvocationHandler;接口
+        在实现接口的 invoke(Object proxy, Method method, Object[] args) 方法里写代理的内容
+
+实验四， Spring1前通知                PreBeforeAdviceDemo
+
+实验五， Spring2前通知                BeforeAdviceDemo
+
+实验六， Spring2后通知               AfterAdviceDemo
+
+实验七， Spring2异常后通知            AfterThrowAdviceDemo
+
+实验八， Spring2环绕通知              AroundAdviceDemo
+
+
+    通知(切面)：    @AspectJ
+         前通知    @Before          --执行业务方法之前
+         后通知    @After           --执行业务方法之后
+         异常后通知 @AfterThrowing   --当业务方法产生异常时通知，没异常则不通知
+         环绕通知   @Around          --执行业务方法的前后都通知
+
+
+
+
+
+
+
+
+
+       3. Spring2 -  Dao & Transaction 实验清单
+
+实验一， 数据源注入                             DataSourceDemo
+		
+
+实验二， Spring2中JdbcTemplate的使用(CRUD)     JdbcTemplateDemo
+        SpringDAO---JdbcTemplate
+        SpringORM---HibernateTemplate
+        共同点：                            不同点：
+          1.所有事务均被封装，使用AOP技术     JdbcTemplate：
+          2.Session的开与关均被封装             SQL---Object
+          3.保证线程安全                       DataSource
+          4.封装ORMaping操作               HibernateTemplate:
+          5.简化应用的持久层操作                 HQL---Object
+                                             LocalSessionFactoryBean
+
+实验三， Spring2中基于Annotation的声明式事务管理  DeclarativeTransactionDemo
+
+实验四， Spring2整合Hibernate3                 SpringHibernateDemo
+
+
+
+
+
+
+
+
+
+        4. Spring2 - Web 实验清单
+
+实验一，Spring2WebMVC框架使用          SpringMVC Demo
+	   
+
+实验二，Spring+Struts+Hibernate       SSH Demo
+
+
+
+
+
+
+
+
+
+
+
+         5. Spring2 - Security实验清单
+
+实验一，基于安全域的BASIC/DIGEST/FORM认证
+
+
+补充实验：SpringQuartz定时器
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

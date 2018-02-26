@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN"
+"http://www.springframework.org/dtd/spring-beans.dtd">
+<!-- 页面处理器 -->
+<beans>
+	<bean id="InternalResourceViewResolver"
+	   class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+	<!-- 页面路径,/表示WebRoot -->
+		<property name="prefix">
+			<value>/common/</value>
+		</property>
+		<!-- 页面扩展名 -->
+		<property name="suffix">
+			<value>.jsp</value>
+		</property>
+	</bean>
+	<!-- 控制器 -->
+	<bean name="/login.springmvc" class="tarena.LoginAction">
+	<!-- success/fail均为JSP页面的名字，不含扩展名 -->
+		<property name="success_view">
+			<value>success</value>
+		</property>
+		<property name="fail_view">
+			<value>fail</value>
+		</property>
+	</bean>
+	
+</beans>

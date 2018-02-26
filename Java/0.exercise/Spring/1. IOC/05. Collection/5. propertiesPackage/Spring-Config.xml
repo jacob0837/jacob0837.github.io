@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+   <bean id="propertiesBean" class="propertiesPackage.PropertiesBean">
+      <property name="props">
+        <props>
+          <prop key="ISBN1000">Spring</prop> <!-- value只能是String，不能是引用 -->
+          <prop key="ISBN2000">OOAD</prop>
+          <prop key="ISBN3000">COre Java</prop>
+        </props>
+      </property>
+   </bean>
+  
+</beans>

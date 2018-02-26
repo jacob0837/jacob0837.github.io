@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+  <!--autowire="byName" ：根据ID号在HelloBean查找有无setStaffTime()方法  -->
+      <!-- 对于byName来说，是根据id和set***()来自动注入的 -->
+        <!-- 对于autodetect来说，先按constructor注入，如不行，再按byType注入 -->  
+  <bean id="helloBean" class="AutoWireBean.HelloBean" autowire="byType">
+      <property name="staffName" value="李江"/>
+  </bean>
+  
+  <!-- 注册Date类 -->
+  <bean id="staffTime" class="java.util.Date"/>
+  
+</beans>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+	
+	<!-- 注册目标对象 -->
+	<bean id="helloSpeaker" class="PreBeforeAdvice.HelloSpeaker"/>
+
+	<!-- 注册通知 -->
+	<bean id="lba" class="PreBeforeAdvice.LogBeforeAdvice"/>
+	
+	<!-- 注册Spring所提供的代理工厂,可以动态产生代理对象 -->
+	<bean id="pfb" class="org.springframework.aop.framework.ProxyFactoryBean">
+		<!-- 绑定目标对象 -->
+		<property name="target"><ref bean="helloSpeaker"/></property>	
+		<!-- 通知集合 -->
+		<property name="interceptorNames">
+			<list>
+				<!-- 通知的ID号 -->
+				<value>lba</value>
+			</list>
+		</property>
+	</bean>
+
+
+</beans>

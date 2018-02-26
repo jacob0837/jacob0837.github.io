@@ -1,0 +1,101 @@
+﻿
+==== 范例1 ==================================================
+import tornado
+import tornado.httpserver
+import tornado.ioloop
+import tornado.web
+import os.path
+
+# 申明一个 add 函数, 提供给模板文件使用
+def add(x, y):
+    return (x+y)
+
+# 网页访问处理
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        items = ["item1","item2","item3", '222']
+        # 第一个参数是模板文件, 后面不但可以传递参数, 还可以传递函数, 可扩展性很好而且很强大。
+        self.render("templates.html", items=items, add=add)
+
+class StoryHandler(tornado.web.RequestHandler):
+    def post(self, story_id):
+        self.set_header("Content-Type", "text/plain") # 设置头部信息
+        self.write("You wrote " + self.get_argument("message")) # get_argument方法接收参数,如果没有传递此参数过来则会出错
+
+        # 不使用模板, 则可直接把内容 write 出去
+        self.write("You requested the story " + story_id)
+        # 可以多次调用 write,把要显示的内容追加上去
+        self.write("<input type='button' value='返回' onclick='window.history.back();'/>")
+
+# 更多的访问处理方式
+class IndexHandler(tornado.web.RequestHandler):
+    # 参数是 Application 配置中的关键字 参数定义。 比 prepare 更早执行。 一般只是把传入的参数存到成员变量中, 而不会产生一些输出或者调用像 send_error 之类的方法。
+    def initialize(self, database):
+        self.database = database
+
+    # 无论使用了哪种 HTTP 方法, prepare 都会被调用到。prepare可以产生输出 信息。如果它调用了finish(或send_error` 等函数), 那么整个处理流程 就此结束。
+    def prepare(self):
+        pass
+
+    # 处理post过来的数据, 接收 service_method, argv 两个URL参数
+    def post(self, service_method='', argv=''):
+        print('method:POST...')
+        print('service_method:' + service_method)
+
+        # 参数处理,按斜杠划分成list
+        if argv:
+            if argv.startswith('/'): argv = argv[1:]
+            if argv.endswith('/'): argv = argv[:-1]
+        argv = argv.split('/') if argv else []
+        print('argv:' + str(argv))
+
+        print('request.arguments:' + str(self.request.arguments)) # form 表单提交的信息,返回 dict 类型,里面是各参数的值的数组
+        print('application:' + str(self.application))
+
+        items = ["item1","item2","item3", 'dfsdfsd']
+        self.render("templates.html", items=items, add=add)
+
+    # 处理get提交过来的数据
+    def get(self, service_method='', argv=''):
+        print('method:GET....')
+        self.post(service_method, argv) # 转去调用 post 方法
+
+    # post 和 get 处理之后的调用； data 是处理模板后的内容, string类型, 调用self.write或者什么都不显示时为None
+    def finish(self, data=None):
+        print('finish   data:\n' + str(data))
+        super(IndexHandler, self).finish(data)
+
+
+# 找不到页面的处理
+class NotFoundHandler(tornado.web.RequestHandler):
+    def prepare(self):
+        NOTFOUND_404 = "404.html" # 404文件地址
+        if os.path.exists(NOTFOUND_404):
+            #self.set_status(404) # 设 404 状态,浏览器可能会跳转到自己定义的找不到页面,要想全部显示一样就不要设置此状态
+            self.render(NOTFOUND_404, url = self.request.full_url())
+        else:
+            self.send_error(404)
+
+
+# 网址访问的配置
+application = tornado.web.Application([
+    (r"/", MainHandler),
+    (r"/story/([0-9]+)", StoryHandler),
+    (r'^/index/(?P<service_method>.*?)(?P<argv>/.*?)?', IndexHandler, dict(database='test')), # service_method, argv 两个URL参数可传递给 get post 函数处理; database 传给 initialize 函数
+    (r"/static/(.*)", tornado.web.StaticFileHandler, {'path':os.path.join(os.path.dirname(__file__), "static")}), # 访问静态文件
+    (r"/.*", NotFoundHandler), # 找不到页面,必须放在最后
+])
+
+if __name__ == "__main__":
+    http_server = tornado.httpserver.HTTPServer(application) # 加载配置
+    http_server.listen(8088) # 监听端口号
+    tornado.ioloop.IOLoop.instance().start() # 启动
+    # 测试网址:
+    # http://localhost:8088/
+    # http://127.0.0.1:8088/story/555
+    # http://127.0.0.1:8088/index/test/test2/kkkk
+
+
+
+
+

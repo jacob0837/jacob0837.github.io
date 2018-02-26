@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+	
+	<!-- 注册目标对象 -->
+	<bean id="helloSpeaker" class="BeforeAdvice.HelloSpeaker"/>
+
+	<!-- 注册通知 -->
+	<bean id="lba" class="BeforeAdvice.LogBeforeAspect"/>
+	
+	<!-- 由SpringAOP自动产生代理对象(SpringAOP框架）-->
+	<aop:aspectj-autoproxy/>
+	
+	<!-- 注册Spring所提供的代理工厂,可以动态产生代理对象 
+		<bean id="pfb" class="org.springframework.aop.framework.ProxyFactoryBean">
+		<property name="target"><ref bean="helloSpeaker"/></property>	
+		<property name="interceptorNames">
+		  <list>
+		     <value>lba</value>
+		  </list>
+		</property>
+		</bean>
+	-->
+
+
+</beans>

@@ -1,0 +1,495 @@
+﻿本笔记只记录 MySQL 数据库与其它数据库的不同点，相同的不记录
+
+常用SQL:
+  1.建表前检查语句:
+    drop table if exists 表名 DEFAULT CHARACTER SET utf8;
+
+  2.建表语句:
+    CREATE TABLE `表名` (
+      `id` int(10) unsigned NOT NULL auto_increment, -- 自增
+      `playlist_id` int(10) NOT NULL, -- 整形
+      `vuchnl_provider_id` int(10) unsigned NOT NULL default '4', -- 非负整型
+      `display_order` smallint(5) unsigned NOT NULL,
+      `circle_code` varchar(8) character set utf8 NOT NULL default '-', -- 字符串
+      `status` enum('active','inactive') character set utf8 NOT NULL default 'active', -- 枚举
+      `video_start_date` timestamp NOT NULL default '0000-00-00 00:00:00', -- 日期和时间
+      `daily_start_time` time NOT NULL default '00:00:00', -- 时间(没有日期)
+      `update_date` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP, -- 更新时间(更新时自动变值)
+      PRIMARY KEY  (`vuchnl_category_playlist_id`), -- 主键
+      UNIQUE KEY `vuchnl_category_id_2` (`vuchnl_category_id`,`circle_code`,`status`,`playlist_type`,`playlist_id`), -- 联合唯一键
+      KEY `vuchnl_provider_id` (`vuchnl_provider_id`) -- 外键
+    ) ENGINE=MyISAM DEFAULT CHARSET=latin1in1;
+
+  3.复制表:
+    SHOW TABLES LIKE '表名'; -- 按表名查询是否有这个表
+    CREATE TABLE 新表名 LIKE 原表名; -- 复制一张表的结构,内容不复制
+    INSERT INTO 新表名 SELECT * FROM 原表名; -- 复制所有旧表的内容到新表(可以加上条件,仅复制部分,表格备份时经常用这两句)
+    CREATE TABLE 新表名 AS SELECT * FROM 旧表名; -- 仅复制数据,没复制表结构(自增主键等不会复制)
+
+
+Index:索引。依附于表，为提高检索速度。
+    index(索引)是数据库特有的一类对象，实际应用中一定要考虑索引，view(示图)
+    复合索引 composite indexes;   唯一性索引 unique indexes;   群集索引 clustered index;
+    CREATE  [UNIQUE]  INDEX  index_name   ON  table_name (column_name) ;
+    DROP  INDEX  index_name;
+
+    MySQL:
+    1. 普通索引
+       最基本的索引，它没有任何限制，比如上文中为title字段创建的索引就是一个普通索引。
+
+       -- 直接创建索引
+       CREATE INDEX indexName ON table(column(length));
+       -- 修改表结构的方式添加索引
+       ALTER tableADD INDEX indexName ON (column(length));
+       -- 删除索引
+       DROP INDEX indexName ON table
+
+    2. 唯一索引
+       与普通索引类似，不同的就是：索引列的值必须唯一，但允许有空值（注意和主键不同）。如果是组合索引，则列值的组合必须唯一，创建方法和普通索引类似。
+
+       -- 创建唯一索引
+       CREATE UNIQUE INDEX indexName ON table(column(length))
+       -- 修改表结构
+       ALTER table ADD UNIQUE indexName ON (column(length))
+
+    3. 全文索引（FULLTEXT）
+       MySQL从3.23.23版开始支持全文索引和全文检索，FULLTEXT索引仅可用于 MyISAM 表；他们可以从CHAR、VARCHAR或TEXT列中作为CREATE TABLE语句的一部分被创建，或是随后使用ALTER TABLE 或CREATE INDEX被添加。
+       对于较大的数据集，将你的资料输入一个没有FULLTEXT索引的表中，然后创建索引，其速度比把资料输入现有FULLTEXT索引的速度更为快。不过切记对于大容量的数据表，生成全文索引是一个非常消耗时间非常消耗硬盘空间的做法。
+
+       -- 修改表结构添加全文索引
+       ALTER TABLE article ADD FULLTEXT index_content(content)
+       -- 直接创建索引
+       CREATE FULLTEXT INDEX index_content ON article(content)
+
+    4. 单列索引、多列索引
+       多个单列索引与单个多列索引的查询效果不同，因为执行查询时，MySQL只能使用一个索引，会从多个索引中选择一个限制最为严格的索引。
+
+    5. 组合索引（最左前缀）
+       平时用的SQL查询语句一般都有比较多的限制条件，所以为了进一步榨取MySQL的效率，就要考虑建立组合索引。
+       例如上表中针对title和time建立一个组合索引：
+       ALTER TABLE article ADD INDEX index_titme_time (title(50),time(10))。
+       建立这样的组合索引，其实是相当于分别建立了下面两组组合索引：
+        –title,time
+        –title
+       为什么没有time这样的组合索引呢？这是因为MySQL组合索引“最左前缀”的结果。简单的理解就是只从最左面的开始组合。
+
+       -- 创建表的时候同时创建索引
+       CREATE TABLE `table` (
+        `id` int(11) NOT NULL AUTO_INCREMENT ,
+        `title` char(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
+        `content` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL ,
+        `time` int(10) NULL DEFAULT NULL ,
+        PRIMARY KEY (`id`),
+        INDEX indexName (title(length)), -- 普通索引
+        UNIQUE indexName (title(length)), -- 唯一索引
+        FULLTEXT (content), -- 全文索引
+       );
+
+    6. 根据sql查询语句确定创建哪种类型的索引，如何优化查询
+    　　选择索引列：
+    　　a.性能优化过程中，选择在哪个列上创建索引是最重要的步骤之一。可以考虑使用索引的主要有
+      　　两种类型的列：在where子句中出现的列，在join子句中出现的列。
+    　　b.考虑列中值的分布，索引的列的基数越大，索引的效果越好。
+    　　c.使用短索引，如果对字符串列进行索引，应该指定一个前缀长度，可节省大量索引空间，提升查询速度。
+    　　d.利用最左前缀
+    　　e.不要过度索引，只保持所需的索引。每个额外的索引都要占用额外的磁盘空间，并降低写操作的性能。
+
+    　　在修改表的内容时，索引必须进行更新，有时可能需要重构，因此，索引越多，所花的时间越长。
+    　　MySQL只对一下操作符才使用索引：<,<=,=,>,>=,between,in,
+    　　以及某些时候的like(不以通配符%或_开头的情形)。
+
+
+修改MySQL的字符集:
+   安装目录下找到“my.ini”，设置“default-character-set=utf8”重启MySQL生效
+   可设成: gbk,gb2312,big5,utf8
+   通过MySQL命令行修改:
+   mysql> set character_set_client=utf8;
+   mysql> set character_set_connection=utf8;
+   mysql> set character_set_database=utf8;
+   mysql> set character_set_results=utf8;
+   mysql> set character_set_server=utf8;
+   mysql> set character_set_system=utf8;
+   mysql> set collation_connection=utf8;
+   mysql> set collation_database=utf8;
+   mysql> set collation_server=utf8;
+   查看其字符集: show variables like 'character%';
+
+   修改数据库的字符集
+   mysql>use mydb
+   mysql>alter database mydb character set utf8;
+   创建数据库指定数据库的字符集
+   mysql>create database mydb character set utf8; --ft_running_status
+   查看某表的字符集: show create table 表名;
+   修改某表的字符集: ALTER TABLE 表名 DEFAULT CHARSET utf8;
+
+
+MySql用户创建、授权以及删除
+    mysql> CREATE USER 用户名 IDENTIFIED BY '密码';  -- 填上想要的用户名密码即可
+     上面建立的用户可以在任何地方登陆。
+     如果要限制在固定地址登陆，比如localhost 登陆:
+    mysql> CREATE USER 用户名@localhost IDENTIFIED BY '密码';
+    -- localhost 可换上任意ip地址，“%”表示任意地址
+
+    若需要授权，用 grant:
+    格式: grant select on 数据库.* to 用户名@登录主机 identified by "密码";
+    如: mysql> GRANT ALL PRIVILEGES ON *.* TO 用户名@登录主机;
+    如: mysql> grant select,insert,update,delete on *.* to utest1@"%" Identified by "abc";
+
+    修改密码:
+    mysql> grant all privileges on 数据库.* to utest1@localhost identified by 'mimi';
+
+    flush:
+    mysql> flush privileges;
+
+    查看用户信息:
+    mysql> select host,user from mysql.user;
+
+    注: 创建用户时，如果提示“table 'user' is read only”，则需要在控制台运行:
+    "安装目录下\bin\mysqladmin" -u<用户名> -p<密码> flush-tables
+
+
+
+查看 MySQL 表结构:
+    desc 表名;
+    describe 表名;
+    show columns from 表名;
+    show create table 表名;
+    select * from information_schema.columns where table_name='表名';
+
+
+MySQL 注释符号:
+       #  单行注释
+       -- 单行注释
+       /* ... */ 多行注释
+
+MySQL 的大小写的:
+      MySQL 的查询默认是不区分大小写的 如:
+       select * from table_name where a like 'a%'
+       select * from table_name where a like 'A%'
+      效果是一样的。
+
+      要让mysql查询区分大小写，可以:
+       select * from table_name where binary a like 'a%'
+       select * from table_name where binary a like 'A%'
+      也可以在建表时，加以标识
+       create table table_name(a varchar (20) binary);
+
+
+MySQL 查询时使用变量:
+    如果查询时需要用变量,而又不希望用存储过程,可以直接使用临时变量(仅本次连结有效)
+    变量以“@”开头,赋值时用“:=”符号; 事先可以不需声明而直接使用,只是初始值为空
+    如: (注意:第一次使用时,值为空,故需要用 ifnull 函数)
+     Select openaccount, iodate, amt as inAmt, 0 as outAmt, @a:=ifnull(@a,0)+amt as _sum
+      From ev_cash where type=1 and openaccount={?OpenAccount} And iodate between '{?StartDate}' and '{?EndDate}'
+     union
+     Select openaccount, iodate, 0 as inAmt, amt as outAmt, remark, @a:=@a-amt as _sum
+      From ev_cash where type=2 and openaccount={?OpenAccount} And iodate between '{?StartDate}' and '{?EndDate}'
+
+
+MySQL 存储过程:
+    一个存储过程包括名字，参数列表，以及可以包括很多SQL语句的SQL语句集。
+    在这里对局部变量，异常处理，循环控制和IF条件句有新的语法定义。
+    在5.0以上版本可用存储过程，检查版本可用语句:  SHOW VARIABLES LIKE 'version'; 或者 SELECT VERSION();
+
+    CREATE PROCEDURE procedure1                      /* name 存储过程名 */
+    (IN parameter1 INTEGER)                          /* parameters 参数 */
+    BEGIN                                            /* start of block 语句块头 */
+       DECLARE variable1 CHAR(10);                   /* variables变量声明, 一定要在開頭的語句 */
+       IF parameter1 = 17 or parameter1 > 50 THEN    /* start of IF IF条件开始 */
+        SET variable1 = 'birds';                     /* assignment 赋值 */
+        SET variable1 = 'ddd';                       /* assignment 操作語句2,這裡只為模擬 */
+       ELSE
+        SET variable1 = 'beasts';                    /* assignment 赋值 */
+       END IF;                                       /* end of IF IF结束 */
+        INSERT INTO table1 VALUES (variable1);       /* statement SQL语句 */
+    END                                              /* end of block 语句块结束 */
+
+
+    最简单的存储过程:
+    CREATE PROCEDURE p1() SELECT * FROM tableName;
+    呼叫它:   CALL p1();
+
+    注意:
+    1. 存储过程名对大小写不敏感。
+    2.在同一个数据库不能给两个存储过程取相同的名字，否则会导致重载。MySQL还不支持重载(希望以后会支持。)
+    3.可以采取“数据库名.存储过程名”，如“db5.p1”。存储过程名可以分开，它可以包括空格符，其长度限制为64个字符
+    4.但注意不要使用MySQL内建函数的名字，否则将会出错。
+
+
+    Pick a Delimiter 选择分隔符:
+        DELIMITER //                                 /* 也可以用“|”或“@”符号 */
+        如果以后要恢复使用“;”(分号)作为分隔符，只需输入:  DELIMITER ;//
+    用法如(使用“$$”作为分隔符):
+        DELIMITER $$
+        drop procedure if exists ff $$
+        CREATE PROCEDURE `ff`()
+        BEGIN
+            declare i integer; # 临时变量
+            set i=1;
+            # 循环
+            while i <=10 do
+            begin
+                #操作
+                set i=i+1; # 递增量
+            end;
+            end while;
+        END $$
+        DELIMITER ;$$   # 恢复分号作分隔符
+
+
+
+MySQL 存储过程 影响的行数:
+    select FOUND_ROWS();  # select 读取的行数
+    select ROW_COUNT();   # update delete insert 等操作所影响的行数
+    注意: 只能在存储过程中使用，仅能读取上一次的影响行数
+
+
+  mysql 执行字符串的sql语句:
+    mysql> PREPARE stmt1 FROM 'SELECT SQRT(POW(?,2) + POW(?,2)) AS hypotenuse';
+    mysql> SET @a = 3;
+    mysql> SET @b = 4;
+    mysql> EXECUTE stmt1 USING @a, @b;
+
+    没参数的:
+    mysql> PREPARE stmt1 FROM 'SELECT * from articalinfo';
+    mysql> EXECUTE stmt1
+
+    执行完的sql删除的时候用下面的语句:
+    mysql> DEALLOCATE PREPARE stmt1;
+
+mysql 创建表时:
+        CREATE TABLE tableName (
+          `item1` date NOT NULL,
+          `item2` varchar(50) default NULL,
+          `item3` int(10) unsigned NOT NULL,
+          PRIMARY KEY  (`item2`)
+        ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+        # ENGINE=MyISAM 表示不支持事务，ENGINE=InnoDB 支持事务。 DEFAULT CHARSET=utf8 默认字符集
+
+windows控制台执行MySQL:
+        运行 cmd，输入:  绝对路径的MySQL安装目录\bin\mysql.exe -h192.168.0.133 -uroot -p13726402698
+        有mysql的环境变量时可运行 cmd，输入:  mysql -h192.168.0.133 -uroot -p13726402698
+        参数说明:  -h地址(不输入这个时，默认本机localhost)， -u用户名， -p密码
+        在安装目录下，写一个“mysql-startup.cmd”的文件，内容为“"bin\mysql" -uroot -proot -h127.0.0.1”,双击运行即可
+
+mysql備份與恢復用法
+        运行 cmd，输入:  绝对路径的MySQL安装目录\bin\mysqldump.exe -h192.168.0.133 -uroot -proot ftc > D:\ftc.sql
+        有mysql的环境变量时可运行 cmd，输入:  mysqldump -h192.168.0.133 -uroot -proot ftc > D:\ftc.sql
+        参数说明:  -h地址(不输入这个时，默认本机localhost)， -u用户名， -p密码， 数据库名称 > 导出文件的路径和名称
+        在安装目录下，写一个“mysqldump.cmd”的文件，内容为“"bin\mysqldump" -h127.0.0.1 -uroot -proot ftc > ftc.sql”,双击运行即可将“ftc”数据库导出到当前目录下
+
+  详细说明:
+        1.導出整個數據庫: mysqldump -u用戶名 -p密码 数据库名称 > 导出文件的路径和名称
+        2.導出一個表:     mysqldump -u用戶名 -p密码 数据库名称 表名> 导出文件的路径和名称
+        3.導出一個数据库結構: mysqldump -u用戶名 -p密码 -d --add-drop-table 数据库名称 > 导出文件的路径和名称
+          -d 沒有數據 --add-drop-table 在每個create語句之前增加一個drop table
+
+   导入数据库:
+      方法一,进入mysql的控制台后，使用 source 命令执行
+        mysql>use 数据库;
+        mysql>source 导出文件的路径和名称
+        如: mysql>source d:\wcnc_db.sql
+
+      方法二 使用cmd命令执行(以windows为例，unix或linux的在其类似的控制台下运行)
+        格式：【Mysql的bin目录】\mysql –u用户名 –p密码 –D数据库<【sql脚本文件路径全名】
+        示例：D:\mysql\bin\mysql –uroot –p123456 -Dtest<d:\test\ss.sql
+        注意事项：
+          1、如果在sql脚本文件中使用了 use 数据库，则-D数据库选项可以忽略
+          2、如果【Mysql的bin目录】中包含空格，则需要使用“”包含，如：
+            “C:\Program Files\mysql\bin\mysql” –u用户名 –p密码 –D数据库<【sql脚本文件路径全名】
+          3、如果需要将执行结果输出到文件，可以采用以下模式
+              D:\mysql\bin\mysql –uroot –p123456 -Dtest<d:\test\ss.sql>d:\dd.txt
+
+
+MYSQL的事务处理
+  1、用begin,rollback,commit来实现
+       begin    开始一个事务
+       rollback 事务回滚
+       commit   事务确认
+   2、直接用set来改变mysql的自动提交模式
+       MYSQL默认是自动提交的，也就是你提交一个QUERY，它就直接执行！我们可以通过
+     set autocommit=0  禁止自动提交
+     set autocommit=1 开启自动提交
+   但注意当你用 set autocommit=0 的时候，你以后所有的SQL都将做为事务处理，直到你用commit确认或rollback结束，注意当你结束这个事务的同时也开启了个新的事务！按第一种方法只将当前的作为一个事务！
+   MYSQL中只有INNODB和BDB类型的数据表才能支持事务处理！其他的类型是不支持的！（切记！)
+
+    show processlist  -- mysql 查看SQL语句操作的耗时
+
+
+判断空值及转换:
+    下面，如果 orders表的 字段price 为null的话，用0.0替换
+    SQL Server: select isnull(price,0.0) from orders
+    Oracle:     select nvl(price,0.0)    from orders
+    MySQL:      select ifnull(price,0.0) from orders
+    通用:       select if(price is null, 0.0, price) from orders
+
+    另外，判断条件的 is not null，is null 都一样
+    select * from orders where price is not null
+
+
+实例:
+    1. 多重查询( 基于MySQL )
+    select count(*) as allNums, sum(isFillIn) as Fillin, sum(if(98Nums=3 or (98Nums=2 and it102 != 0),1,0)) as 98Num3
+    from (
+        select case item298 when 0 then 1 else 0 end isFillIn, case item298 when -2 then 1 else 0 end isSuspend,
+        if(isnull(left(a.item250,1)) or ifnull(item298,-2)<>0,0,left(a.item250,1)) as 98Nums
+         FROM ft_running_status AS a where a.years=98 "
+    ) f
+
+    select '期初餘額' as type, (a.amt + b.amt) as inAmt
+    from (
+        (select if(sum(amt) is null,0, sum(amt)) as amt from ev_cash where type=1 and iodate < '2010/06/26') as a,
+        (select if(sum(amt) is null,0, sum(amt)) as amt from ev_atm where tdate < '2010/06/26') as b
+    )
+
+    2. 找领导: (member表,manager_id表示领导id)
+     select id,last_name from member out where exists (select 'x' from member where manager_id = out.id);
+     或者(效率低点): select id,last_name from member out where id in (select manager_id from member);
+
+    3. IF 条件 ( 仅MySQL 测试过,其他未测试 )
+    -- 如果 表1 里面有 custid='TW00' 的资料,则只查询此一笔资料;否则查询所有资料
+    select * from 表1 where if(exists (select 'V' from 表1 where custid='TW00'), custid='TW00',1=1 )
+
+    4.将纵列改成横排:
+      表tb_score: create table tb_score(memid varchar(20) , classid varchar(20), points numeric(10,2) )
+
+     select distinct memid,
+      (select points from tb_score where classid='1001'  and memid=s.memid ) JAVA,
+      (select points from tb_score where classid='1002'  and memid=s.memid) SQL,
+      (select points from tb_score where classid='1003'  and memid=s.memid) JSP,
+      (select points from tb_score where classid='1004'  and memid=s.memid) C
+    from tb_score s
+
+   5. case 用法:
+    select MEM_ID, NAME, AVGPOINT,
+      (case type when 'student' then '学生' when 'teacher' then '老师' else '其它' end ) 'type',
+      (case when (sex='m') then '男' else '女' end ) as 'sex'
+    from tb_member
+
+    case + count : count里可用条件语句
+     select count(*) as '总数',  count(case when item248 <= 79 then 1 end) as '79前'
+     from table1 where item248 is not null and item298=0;
+
+   6. 一次性更新多笔记录:
+    update ft_running_status as f set f.item11 = (select (case e.country when 2 then _utf8'美國'
+     when 3 then _utf8'加拿大' when 4 then _utf8'其他' else _utf8'本國' end)
+     from enterprise as e where e.id=f.item5)
+
+   7.多表更新
+    -- 更新東琳有,中壢也有的貨品,改貨品數量(多表同时update,方便复杂的条件)
+    update ev_inventory a, ev_inventory b set a.nowqty = a.nowqty+b.nowqty
+      where a.wid='中壢' and a.pid=b.pid and b.wid='東琳';
+
+   8.update的select子查詢裡面使用自身表(MySQL)
+    -- 建立臨時表,因為同一個表沒法在update的select子查詢裡面使用
+    drop table if EXISTS tem_inventory;
+    CREATE TABLE tem_inventory  AS  SELECT *  FROM ev_inventory where wid='東琳' or wid='中壢';
+
+    -- 更新東琳有,而中壢沒有的貨品,直接改倉庫ID即可
+    update ev_inventory a set a.wid='中壢' where a.wid='東琳' and a.pid not in(
+      select b.pid from tem_inventory b where b.wid='中壢'
+    );
+
+    -- 刪除臨時表
+    drop table if EXISTS tem_inventory;
+
+   9. MySQL 查询及删除重复记录的方法
+    1、查找表中多余的重复记录，重复记录是根据单个字段(pId)来判断(查询出所有重复的资料)
+    select * from 表1
+    where pId in (select pId from 表1 group by pId having count(*) > 1);
+
+    2、删除表中多余的重复记录，重复记录是根据单个字段(pId)来判断，只留有rowid最小的记录
+    delete from 表1
+    where pId in (select pId from 表1 group by pId having count(*) > 1)
+    and pId not in (select min(pId) from 表1 group by pId having count(*)>1);
+    -- 建立唯一键来限制也可以,只是会改变表结构
+    ALTER IGNORE TABLE 資料表 ADD UNIQUE INDEX(字段1,字段2);
+
+    3、查找表中多余的重复记录(多个字段)
+    select * from 表1 a
+    where (a.pId, a.seq) in (select pId, seq from 表1 group by pId,seq having count(*) > 1);
+
+    4、删除表中多余的重复记录(多个字段)，只留有rowid最小的记录
+    delete from 表1 a
+    where (a.pId,a.seq) in (select pId,seq from 表1 group by pId,seq having count(*) > 1)
+    and rowid not in (select min(rowid) from 表1 group by pId,seq having count(*)>1);
+
+    /* 用临时表来做重复查询和删除操作; 方便提高效率以及解决不能同表子查询删除的情况 */
+    -- 原本查询重复的SQL
+    select * from music a where (a.moid, a.seqno) in
+       (select moid, seqno from music group by moid, seqno having count(*) > 1);
+    -- 上面SQL太慢，換用临时表來做
+    drop table if exists tem;
+    create table tem as
+       select min(oid) as oid, moid, seqno from music  group by moid, seqno having count(*) > 1;
+    select a.* from music a, tem t where a.moid=t.moid and a.seqno=t.seqno;
+    -- 刪除错误资料
+    delete from music where (moid, seqno) in
+       (select moid, seqno from tem) and oid not in (select oid from tem);
+    drop table tem;
+
+   10. 随机取值
+    1、SQL server
+       select top 10 * from 表名 order by newid();
+    2、Access
+       SELECT top 10 * FROM 表名 order by rnd(id); -- id:为你当前表的ID字段名
+    3、MySQL
+       SELECT * FROM 表名 order by rand() limit 10;
+    4、Oracle
+       select * from (select object_name from 表名 order by dbms_random.random) where rownum<6; -- 随机取 5 条
+       select * from (select OBJECT_NAME from 表名 order by sys_guid()) where rownum < 6;
+       -- 使用 sys_guid() 方法时,有时会获取到相同的记录，它并不保证一定是随机。
+       -- 为确保随机,大多采用sample函数或者DBMS_RANDOM包获得随机结果集, 其中使用sample函数更常用, 因为其缩小了查询范围, 效率高。
+
+       -- 从表中“全表扫描”随机抽取10%的记录，随机查询5条记录
+       SELECT object_name FROM 表名 sample(10) WHERE rownum<6;
+       -- 从表中“采样表扫描”随机抽取10%的记录，随机查询5条记录
+       SELECT object_name FROM 表名 sample block(10) WHERE rownum<6;
+       -- 使用seed, 返回固定的结果集。从表中“采样表扫描”随机抽取10%的记录，随机查询5条记录。
+       select object_name from 表名 sample(10) seed(10) where rownum<6;
+
+       select dbms_random.value() from dual; -- 取随机数, 返回 0~1 之间的值
+       select dbms_random.value(1,10) from dual; -- 取随机数, 返回 1~10 之间的浮点数
+       select trunc(dbms_random.value(0, 1000)) randomNum from dual; -- (0~1000的整数)
+
+
+   11. 按时间段分组查询
+    1、MySQL
+       数据库里面有一字段类型为 datetime ,想按时间段来分组,用 DATE_FORMAT 函数
+       SELECT `Id`, sum(`Number`) Number, DATE_FORMAT(`Date`, '%Y-%m-%d %k:%i:%s') d FROM `classifycount` Group By d
+
+       时间时的格式
+        %W 星期名字(Sunday……Saturday)
+        %D 有英语前缀的月份的日期(1st, 2nd, 3rd, 等等)
+        %Y 年, 数字, 4 位
+        %y 年, 数字, 2 位
+        %a 缩写的星期名字(Sun……Sat)
+        %d 月份中的天数, 数字(00……31)
+        %e 月份中的天数, 数字(0……31)
+        %m 月, 数字(01……12)
+        %c 月, 数字(1……12)
+        %b 缩写的月份名字(Jan……Dec)
+        %j 一年中的天数(001……366)
+        %H 小时(00……23)
+        %k 小时(0……23)
+        %h 小时(01……12)
+        %I 小时(01……12)
+        %l 小时(1……12)
+        %i 分钟, 数字(00……59)
+        %r 时间,12 小时(hh:mm:ss [AP]M)
+        %T 时间,24 小时(hh:mm:ss)
+        %S 秒(00……59)
+        %s 秒(00……59)
+        %p AM或PM
+        %w 一个星期中的天数(0=Sunday ……6=Saturday )
+        %U 星期(0……52), 这里星期天是星期的第一天
+        %u 星期(0……52), 这里星期一是星期的第一天
+        %% 一个文字“%”。
+        所有的其他字符不做解释被复制到结果中。
+
+       http://zhidao.baidu.com/question/293828754.html
+       http://hlee.iteye.com/blog/435507
+
+    12. 查询自增主键( MySQL, Sql Server )
+	SELECT LAST_INSERT_ID(); -- MySQL 专用
+	SELECT @@identity; -- Sql Server 及 MySQL 通用

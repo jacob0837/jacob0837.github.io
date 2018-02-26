@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+  <!-- 默认是单例模式 scope="singleton"：所有的hashCode码相同；
+            加上scope="prototype"变原型模式：所有的hashCode码不相同 -->
+  <bean id="dbBean" class="BeanSingletonPrototypeDemo.DBBean" scope="prototype">
+      <property name="driver" value="com.mysql.jdbc.Driver"/>
+      <property name="url" value="jdbc:mysql://localhost:3306/test" />
+      <property name="user" value="root"/>
+      <property name="password" value=""/>
+  </bean>
+  
+</beans>
